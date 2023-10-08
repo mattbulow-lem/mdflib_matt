@@ -72,9 +72,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExternalIncludePath>../include;$(ExternalIncludePath)</ExternalIncludePath>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\lib\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExternalIncludePath>../include;$(ExternalIncludePath)</ExternalIncludePath>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\lib\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ExternalIncludePath>../include;$(ExternalIncludePath)</ExternalIncludePath>
