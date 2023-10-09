@@ -145,6 +145,9 @@ class IChannel : public IBlock  {
   /** \brief Channel flags are defined in the CnFlag namespace  */
   [[nodiscard]] virtual uint32_t Flags() const;
 
+  /** \brief Create a new channel. */
+  [[nodiscard]] virtual IChannel* CreateChannel() = 0;
+
   [[nodiscard]] virtual bool IsUnitValid() const = 0; ///< True if unit exists.
 
   virtual void Type(ChannelType type) = 0; ///< Sets the type of channel.

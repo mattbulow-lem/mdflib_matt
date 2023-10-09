@@ -118,7 +118,7 @@ int main()
 	ISourceInformation* si = cg->CreateSourceInformation();
 	si->Name("CAN");
 	si->Path("CAN_DataFrame");
-	si->Description("Trying to get the working in CANalyzer, but need SubChannels");
+	si->Description("Trying to get this working in CANalyzer, but need SubChannels");
 	si->Type(SourceType::Bus);
 	si->Bus(BusType::Can);
 
@@ -145,72 +145,71 @@ int main()
 	//			  Member = DataBytes  -> startByte 16;  8 byte,    actual raw hex data of CAN frame/message
 	//			  Member = Dir		  -> startByte 24;  1 byte,    direction (recieved, transmitted)
 
-	//// CAN_DataFrame channel
-	//cn = cg->CreateChannel();
-	//cn->Name("CAN_DataFrame");
-	//cn->Flags(CnFlag::BusEvent);
-	//cn->DataType(ChannelDataType::ByteArray);
-	//cn->DataBytes(17);
-
-	// 1: BusChannel
+	// 1: CAN_DataFrame channel
 	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.BusChannel");
+	cn->Name("CAN_DataFrame");
 	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(1);
-	// 2: ID
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.ID");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(4);
-	// 3: IDE
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.IDE");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(1);
-	// 4: DLC
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.DLC");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(1);
-	// 5: DataLength
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.DataLength");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(1);
-	// 6: DataBytes
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.DataBytes");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(8);
 	cn->DataType(ChannelDataType::ByteArray);
-	// 7: Dir
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.Dir");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(1);
-	// 8: EDL
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.EDL");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(1);
-	// 9: ESI
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.ESI");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(1);
-	// 10: BRS
-	cn = cg->CreateChannel();
-	cn->Name("CAN_DataFrame.BRS");
-	cn->Flags(CnFlag::BusEvent);
-	cn->DataBytes(1);
+	cn->DataBytes(17);
+
+	// 2: BusChannel
+	IChannel* cn_cn = cn->CreateChannel();
+	cn_cn->Name("CAN_DataFrame.BusChannel");
+	cn_cn->Flags(CnFlag::BusEvent);
+	cn_cn->DataBytes(1);
+	// 3: ID
+	cn_cn = cn->CreateChannel();
+	cn_cn->Name("CAN_DataFrame.ID");
+	cn_cn->Flags(CnFlag::BusEvent);
+	cn_cn->DataBytes(4);
+	// 4: IDE
+	cn_cn = cn->CreateChannel();
+	cn_cn->Name("CAN_DataFrame.IDE");
+	cn_cn->Flags(CnFlag::BusEvent);
+	cn_cn->DataBytes(1);
+	// 5: DLC
+	cn_cn = cn->CreateChannel();
+	cn_cn->Name("CAN_DataFrame.DLC");
+	cn_cn->Flags(CnFlag::BusEvent);
+	cn_cn->DataBytes(1);
+	// 6: DataLength
+	cn_cn = cn->CreateChannel();
+	cn_cn->Name("CAN_DataFrame.DataLength");
+	cn_cn->Flags(CnFlag::BusEvent);
+	cn_cn->DataBytes(1);
+	// 7: DataBytes
+	cn_cn = cn->CreateChannel();
+	cn_cn->Name("CAN_DataFrame.DataBytes");
+	cn_cn->Flags(CnFlag::BusEvent);
+	cn_cn->DataBytes(8);
+	cn_cn->DataType(ChannelDataType::ByteArray);
+	// 8: Dir
+	cn_cn = cn->CreateChannel();
+	cn_cn->Name("CAN_DataFrame.Dir");
+	cn_cn->Flags(CnFlag::BusEvent);
+	cn_cn->DataBytes(1);
+	//// 9: EDL
+	//cn = cg->CreateChannel();
+	//cn->Name("CAN_DataFrame.EDL");
+	//cn->Flags(CnFlag::BusEvent);
+	//cn->DataBytes(1);
+	//// 10: ESI
+	//cn = cg->CreateChannel();
+	//cn->Name("CAN_DataFrame.ESI");
+	//cn->Flags(CnFlag::BusEvent);
+	//cn->DataBytes(1);
+	//// 11: BRS
+	//cn = cg->CreateChannel();
+	//cn->Name("CAN_DataFrame.BRS");
+	//cn->Flags(CnFlag::BusEvent);
+	//cn->DataBytes(1);
 
 
 	// Add data to channels
 	// 
 	// This create a thread that handle the queue of samples. The function also write the configuration to the file and closes it.
 	flag = writer->InitMeasurement();
-	std::cout << "Did Init Measurement Work? " << flag << std::endl;
-	
+	std::cout << "Did Init Measurement Work? " << flag << std::endl;	
 
 	auto cg_cn = cg->Channels();
 	writer->StartMeasurement(epoch_time());
@@ -218,19 +217,20 @@ int main()
 	{
 		std::cout << ".";
 		// set channel values
-		cg_cn[toInt(CanChName::Timestamp)]->SetChannelValue(0.01 * static_cast<double>(n));
-		cg_cn[toInt(CanChName::BusChannel)]->SetChannelValue(1);
-		cg_cn[toInt(CanChName::ID)]->SetChannelValue(0x7FF);
-		cg_cn[toInt(CanChName::IDE)]->SetChannelValue(0);
-		cg_cn[toInt(CanChName::DLC)]->SetChannelValue(8);
-		cg_cn[toInt(CanChName::DataLength)]->SetChannelValue(8);
+		cg_cn[0]->SetChannelValue(0.01 * static_cast<double>(n));
+		// shouldnt need to set channel [1] 'CAN_DataFrame' due to sub channels
+		cg_cn[2]->SetChannelValue(1);
+		cg_cn[3]->SetChannelValue(0x7FF);
+		cg_cn[4]->SetChannelValue(0);
+		cg_cn[5]->SetChannelValue(8);
+		cg_cn[6]->SetChannelValue(8);
 		std::vector<uint8_t> myVector = { 1, 2, 3, 4, 5, 6, 7, 8 };
 		for (auto& element : myVector) { element *= n; }
-		cg_cn[toInt(CanChName::DataBytes)]->SetChannelValue(myVector);
-		cg_cn[toInt(CanChName::Dir)]->SetChannelValue(0);
-		cg_cn[toInt(CanChName::EDL)]->SetChannelValue(0);
-		cg_cn[toInt(CanChName::ESI)]->SetChannelValue(0);
-		cg_cn[toInt(CanChName::BRS)]->SetChannelValue(0);
+		cg_cn[7]->SetChannelValue(myVector);
+		cg_cn[8]->SetChannelValue(0);
+	//	cg_cn[toInt(CanChName::EDL)]->SetChannelValue(0);
+	//	cg_cn[toInt(CanChName::ESI)]->SetChannelValue(0);
+	//	cg_cn[toInt(CanChName::BRS)]->SetChannelValue(0);
 
 		//save channel values
 		writer->SaveSample(*cg, epoch_time());

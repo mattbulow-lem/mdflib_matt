@@ -21,13 +21,17 @@ class Cg4Block;
 
 class Cn4Block : public DataListBlock, public IChannel {
  public:
-  using Cx4List = std::vector<std::unique_ptr<MdfBlock>>;
+  using Cx4List = std::vector<std::unique_ptr<Cn4Block>>;
 
   Cn4Block();
   [[nodiscard]] int64_t Index() const override;
   [[nodiscard]] std::string BlockType() const override {
     return MdfBlock::BlockType();
   }
+
+  [[nodiscard]] IChannel* CreateChannel() override;
+
+  void AddCn4(std::unique_ptr<Cn4Block>& cn4);
 
   void Name(const std::string& name) override;
   [[nodiscard]] std::string Name() const override;

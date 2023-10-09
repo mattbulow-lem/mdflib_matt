@@ -226,6 +226,20 @@ std::string Cn4Block::Description() const { return MdText(); }
 const IChannelConversion *Cn4Block::ChannelConversion() const {
   return cc_block_.get();
 }
+
+IChannel* Cn4Block::CreateChannel() {
+    auto cn4 = std::make_unique<detail::Cn4Block>();
+    cn4->Init(*this);
+    // TODO: figure out a better way to do this?
+    cn4->cg_block_ = cg_block_;
+    AddCn4(cn4);
+    return cx_list_.empty() ? nullptr : cx_list_.back().get();
+}
+
+void Cn4Block::AddCn4(std::unique_ptr<Cn4Block>& cn4) {
+    cx_list_.push_back(std::move(cn4));
+}
+
 ChannelDataType Cn4Block::DataType() const {
   return static_cast<ChannelDataType>(data_type_);
 }
@@ -344,21 +358,21 @@ size_t Cn4Block::Read(std::FILE *file) {
 
     if (cx_list_.empty() && (Link(kIndexCx) > 0)) {
       for (auto link = Link(kIndexCx); link > 0; /* No ++ here*/) {
-        if (block_type == "CA") {
+/*        if (block_type == "CA") {
           auto ca_block = std::make_unique<Ca4Block>();
           ca_block->Init(*this);
           SetFilePosition(file, link);
           ca_block->Read(file);
           link = ca_block->Link(0);
           cx_list_.emplace_back(std::move(ca_block));
-        } else if (block_type == "CN") {
+        } else if (block_type == "CN") {*/
           auto cn_block = std::make_unique<Cn4Block>();
           cn_block->Init(*this);
           SetFilePosition(file, link);
           cn_block->Read(file);
           link = cn_block->Link(0);
           cx_list_.emplace_back(std::move(cn_block));
-        }
+        //}
       };
     }
   }
@@ -958,6 +972,17 @@ void Cn4Block::PrepareForWriting(size_t offset) {
       }
       break;
   }
+
+  // Sets ByteOffset for subchannels
+  size_t byte_offset = offset;
+  for (auto& channel1 : cx_list_) {
+      if (!channel1) {
+          continue;
+      }
+      channel1->PrepareForWriting(byte_offset);
+      byte_offset += channel1->DataBytes();
+  }
+
 }
 
 void Cn4Block::SetValid(bool valid) {

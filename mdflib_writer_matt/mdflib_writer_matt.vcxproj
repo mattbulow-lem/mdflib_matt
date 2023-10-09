@@ -73,19 +73,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)x64\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)x64\Release\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(SolutionDir)include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)x64\Release\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(SolutionDir)include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)x64\Release\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)x64\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)x64\Release\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -99,7 +102,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mdflib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -118,7 +121,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mdflib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -133,7 +136,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mdflib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -152,43 +155,45 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mdflib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ProjectReference />
+    <ProjectReference />
     <ProjectReference />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\mdf\cryptoutil.h" />
+    <ClInclude Include="..\include\mdf\etag.h" />
+    <ClInclude Include="..\include\mdf\iattachment.h" />
+    <ClInclude Include="..\include\mdf\iblock.h" />
+    <ClInclude Include="..\include\mdf\ichannel.h" />
+    <ClInclude Include="..\include\mdf\ichannelarray.h" />
+    <ClInclude Include="..\include\mdf\ichannelconversion.h" />
+    <ClInclude Include="..\include\mdf\ichannelgroup.h" />
+    <ClInclude Include="..\include\mdf\ichannelhierarchy.h" />
+    <ClInclude Include="..\include\mdf\ichannelobserver.h" />
+    <ClInclude Include="..\include\mdf\idatagroup.h" />
+    <ClInclude Include="..\include\mdf\ievent.h" />
+    <ClInclude Include="..\include\mdf\ifilehistory.h" />
+    <ClInclude Include="..\include\mdf\iheader.h" />
+    <ClInclude Include="..\include\mdf\imetadata.h" />
+    <ClInclude Include="..\include\mdf\isampleobserver.h" />
+    <ClInclude Include="..\include\mdf\isourceinformation.h" />
+    <ClInclude Include="..\include\mdf\mdffactory.h" />
+    <ClInclude Include="..\include\mdf\mdffile.h" />
+    <ClInclude Include="..\include\mdf\mdfhelper.h" />
+    <ClInclude Include="..\include\mdf\mdflogstream.h" />
+    <ClInclude Include="..\include\mdf\mdfreader.h" />
+    <ClInclude Include="..\include\mdf\mdfwriter.h" />
+    <ClInclude Include="..\include\mdf\samplerecord.h" />
+    <ClInclude Include="..\include\mdf\zlibutil.h" />
     <ClInclude Include="src\main.h" />
-    <ClInclude Include="include\mdf\cryptoutil.h" />
-    <ClInclude Include="include\mdf\etag.h" />
-    <ClInclude Include="include\mdf\iattachment.h" />
-    <ClInclude Include="include\mdf\iblock.h" />
-    <ClInclude Include="include\mdf\ichannel.h" />
-    <ClInclude Include="include\mdf\ichannelarray.h" />
-    <ClInclude Include="include\mdf\ichannelconversion.h" />
-    <ClInclude Include="include\mdf\ichannelgroup.h" />
-    <ClInclude Include="include\mdf\ichannelhierarchy.h" />
-    <ClInclude Include="include\mdf\ichannelobserver.h" />
-    <ClInclude Include="include\mdf\idatagroup.h" />
-    <ClInclude Include="include\mdf\ievent.h" />
-    <ClInclude Include="include\mdf\ifilehistory.h" />
-    <ClInclude Include="include\mdf\iheader.h" />
-    <ClInclude Include="include\mdf\imetadata.h" />
-    <ClInclude Include="include\mdf\isampleobserver.h" />
-    <ClInclude Include="include\mdf\isourceinformation.h" />
-    <ClInclude Include="include\mdf\mdffactory.h" />
-    <ClInclude Include="include\mdf\mdffile.h" />
-    <ClInclude Include="include\mdf\mdfhelper.h" />
-    <ClInclude Include="include\mdf\mdflogstream.h" />
-    <ClInclude Include="include\mdf\mdfreader.h" />
-    <ClInclude Include="include\mdf\mdfwriter.h" />
-    <ClInclude Include="include\mdf\samplerecord.h" />
-    <ClInclude Include="include\mdf\zlibutil.h" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="lib\mdflib.lib" />
+    <Library Include="..\x64\Release\lib\mdflib.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

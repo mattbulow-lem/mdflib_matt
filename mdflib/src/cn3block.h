@@ -22,6 +22,9 @@ class Cn3Block : public DataListBlock, public IChannel {
   [[nodiscard]] std::string BlockType() const override {
     return MdfBlock::BlockType();
   }
+
+  [[nodiscard]] IChannel* CreateChannel() override { return nullptr; };
+
   void Name(const std::string& name) override;
   [[nodiscard]] std::string Name() const override;
 
