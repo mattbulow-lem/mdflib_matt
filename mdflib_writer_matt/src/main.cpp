@@ -29,7 +29,6 @@ uint64_t epoch_time() {
 	return epoch_ns;
 }
 
-
 #include "main.h"
 
 #include <mdf/mdffile.h>
@@ -88,12 +87,14 @@ int main()
 	header->Department("Home Alone");
 	header->Description("Testing Sample");
 	header->Project("Mdf4WriteCanData");
-	header->StartTime(epoch_time());
 	header->Subject("TelematicsLogger");
-	// Make Channel Higharchy Block, what is this used for?
-	//IChannelHierarchy* hierarchy = header->CreateChannelHierarchy();
-	//hierarchy->Name("Test hierarchy");
-	//hierarchy->Type(ChType::Structure);
+	// TODO: update source code to be able to enter timezone infomation
+	//void Mdf4Timestamp::NsSince1970(uint64_t utc) {
+	//	time_ = utc;
+	//	tz_offset_ = 0;
+	//	dst_offset_ = 0;
+	//	flags_ = 0;
+	//}
 
 	// file history block (FH)
 	IFileHistory* history = header->CreateFileHistory();
@@ -188,56 +189,68 @@ int main()
 	cn_cn->Name("CAN_DataFrame.Dir");
 	cn_cn->Flags(CnFlag::BusEvent);
 	cn_cn->DataBytes(1);
-	//// 9: EDL
-	//cn = cg->CreateChannel();
-	//cn->Name("CAN_DataFrame.EDL");
-	//cn->Flags(CnFlag::BusEvent);
-	//cn->DataBytes(1);
-	//// 10: ESI
-	//cn = cg->CreateChannel();
-	//cn->Name("CAN_DataFrame.ESI");
-	//cn->Flags(CnFlag::BusEvent);
-	//cn->DataBytes(1);
-	//// 11: BRS
-	//cn = cg->CreateChannel();
-	//cn->Name("CAN_DataFrame.BRS");
-	//cn->Flags(CnFlag::BusEvent);
-	//cn->DataBytes(1);
-
 
 	// Add data to channels
-	// 
-	// This create a thread that handle the queue of samples. The function also write the configuration to the file and closes it.
+	//
+	// InitMeasurment function will write the configuration (mdf blocks) to the file and closes it.
+	// It also creates a thread to cache queue samples when using SaveSample() 
+	// Cnce StartMeasurement(time) is run, cached samples will be writen to disk every few seconds (not sure where this logic is located)
+	// StartMeasurement(time) also sets hd_start_time_ns value of HeaderBlock
+	// hd_start_time_ns is then used in SaveSample(time) to write a relative time to the Timestamp Channel
+	// SaveSample(time) will save values set with SetChannelValue() into the cache (cache will write to disk every few sec)
+	// StopMeasurement(time) will write current contents of cache to disk and stop periodically writing cache to disk
+	// FinalizeMeasurement() will save any stop the thread
+	std::cout << "Pre Trig Time: " << writer->PreTrigTime() << std::endl;
 	flag = writer->InitMeasurement();
-	std::cout << "Did Init Measurement Work? " << flag << std::endl;	
+	std::cout << "Did Init Measurement Work? " << flag << std::endl;
 
 	auto cg_cn = cg->Channels();
-	writer->StartMeasurement(epoch_time());
-	for (uint64_t n = 0; n < 1000; n++)
-	{
-		std::cout << ".";
-		// set channel values
-		cg_cn[0]->SetChannelValue(0.01 * static_cast<double>(n));
-		// shouldnt need to set channel [1] 'CAN_DataFrame' due to sub channels
-		cg_cn[2]->SetChannelValue(1);
-		cg_cn[3]->SetChannelValue(0x7FF);
-		cg_cn[4]->SetChannelValue(0);
-		cg_cn[5]->SetChannelValue(8);
-		cg_cn[6]->SetChannelValue(8);
-		std::vector<uint8_t> myVector = { 1, 2, 3, 4, 5, 6, 7, 8 };
-		for (auto& element : myVector) { element *= n; }
-		cg_cn[7]->SetChannelValue(myVector);
-		cg_cn[8]->SetChannelValue(0);
-	//	cg_cn[toInt(CanChName::EDL)]->SetChannelValue(0);
-	//	cg_cn[toInt(CanChName::ESI)]->SetChannelValue(0);
-	//	cg_cn[toInt(CanChName::BRS)]->SetChannelValue(0);
+	// After Start Measurment is called, samples will be saved to disk every few sec
 
-		//save channel values
-		writer->SaveSample(*cg, epoch_time());
-		//std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	uint64_t time_ns = epoch_time();
+	// all time values used by these scripts should be epoch time in nano seconds
+
+	time_ns += uint64_t(1e9);
+	writer->StartMeasurement(time_ns);
+
+	uint8_t msg_bus = 1;
+	uint32_t msg_id = 0x1020;
+	bool msg_extended = true;
+	if (msg_extended) {
+		msg_id |= uint32_t(0x80000000);
+	}
+	uint8_t msg_length = 8;
+	std::vector<uint8_t> msg_data = {1, 2, 3, 4, 5, 6, 7, 8};
+
+	// create some fake data and save samples
+	for (uint64_t n = 0; n < 100; n++)
+	{
+		// set channel values
+		// No need to set Timestamp channel value, this is done by SaveSample() below
+		// TODO: use enums or something to make cg_cn[] more readable
+		cg_cn[2]->SetChannelValue(msg_bus);			// Bus Channel
+		// Convert ID to CANalyzer readable format.
+			
+		cg_cn[3]->SetChannelValue(msg_id);	// ID
+		cg_cn[4]->SetChannelValue(msg_extended);			// IDE
+		cg_cn[5]->SetChannelValue(msg_length);			// DLC
+		cg_cn[6]->SetChannelValue(msg_length);			// Data Length
+		std::vector<uint8_t> myVector = msg_data;
+		for (auto& element : myVector = msg_data) { element *= n; }
+		cg_cn[7]->SetChannelValue(myVector);	// Data Bytes
+		cg_cn[8]->SetChannelValue(0);			// Direction 0:Rx, 1:Tx
+
+		// save channel values to a cashe
+		// Also writes the master time channel using input time argument
+		// It actually generates a relative time based on StartMeasurement(time) input argument
+		time_ns += uint64_t(1e9);
+		writer->SaveSample(*cg, time_ns);
+		//std::this_thread::sleep_for(std::chrono::microseconds(10));
 	}
 
-	writer->StopMeasurement(epoch_time());
+	time_ns += uint64_t(1e9);
+	writer->StopMeasurement(time_ns);
+
 
 	flag = writer->FinalizeMeasurement();
 	std::cout << std::endl << "Did Finalize Work? " << flag << std::endl;
