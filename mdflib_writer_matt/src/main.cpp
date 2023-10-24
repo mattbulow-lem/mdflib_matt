@@ -45,9 +45,19 @@ uint64_t epoch_time() {
 
 using namespace mdf;
 
+#include "readCanKingTxt.h"
+
 int main()
 {
 	std::cout << "Hello World!\n";
+
+	std::vector<DataFrame> dataFrames = read_txt_file("LKB07693.txt");
+	double start_time;
+	start_time = dataFrames[0].Timestamp;
+
+	//Output Filename
+	const char* filename = "LKB07693.mf4";
+
 
 	/*
 	The MDF writer purpose is to create MDF files. It simplifies the writing into some steps.
@@ -61,8 +71,8 @@ int main()
 	The FinalizeMeasurement() function. Stops the thread and write all unwritten blocks to the file.
 	*/
 
-	const char* filename = "test2.mf4";
 
+	// TODO: check if file exsists and tell operator
 	// Attempt to delete the file
 	if (std::remove(filename) == 0) {
 		// Deletion succeeded
@@ -210,40 +220,30 @@ int main()
 	uint64_t time_ns = epoch_time();
 	// all time values used by these scripts should be epoch time in nano seconds
 
-	time_ns += uint64_t(1e9);
 	writer->StartMeasurement(time_ns);
 
-	uint8_t msg_bus = 1;
-	uint32_t msg_id = 0x1020;
-	bool msg_extended = true;
-	if (msg_extended) {
-		msg_id |= uint32_t(0x80000000);
-	}
-	uint8_t msg_length = 8;
-	std::vector<uint8_t> msg_data = {1, 2, 3, 4, 5, 6, 7, 8};
+	
 
 	// create some fake data and save samples
-	for (uint64_t n = 0; n < 100; n++)
+	for (uint64_t n = 0; n < dataFrames.size(); n++)
 	{
 		// set channel values
 		// No need to set Timestamp channel value, this is done by SaveSample() below
 		// TODO: use enums or something to make cg_cn[] more readable
-		cg_cn[2]->SetChannelValue(msg_bus);			// Bus Channel
+		cg_cn[2]->SetChannelValue(dataFrames[n].BusChannel);			// Bus Channel
 		// Convert ID to CANalyzer readable format.
 			
-		cg_cn[3]->SetChannelValue(msg_id);	// ID
-		cg_cn[4]->SetChannelValue(msg_extended);			// IDE
-		cg_cn[5]->SetChannelValue(msg_length);			// DLC
-		cg_cn[6]->SetChannelValue(msg_length);			// Data Length
-		std::vector<uint8_t> myVector = msg_data;
-		for (auto& element : myVector = msg_data) { element *= n; }
-		cg_cn[7]->SetChannelValue(myVector);	// Data Bytes
-		cg_cn[8]->SetChannelValue(0);			// Direction 0:Rx, 1:Tx
+		cg_cn[3]->SetChannelValue(dataFrames[n].ID);	// ID
+		cg_cn[4]->SetChannelValue(dataFrames[n].IDE);			// IDE
+		cg_cn[5]->SetChannelValue(dataFrames[n].DLC);			// DLC
+		cg_cn[6]->SetChannelValue(dataFrames[n].DataLength);			// Data Length
+		cg_cn[7]->SetChannelValue(dataFrames[n].DataBytes);	// Data Bytes
+		cg_cn[8]->SetChannelValue(dataFrames[n].Dir);			// Direction 0:Rx, 1:Tx
 
 		// save channel values to a cashe
 		// Also writes the master time channel using input time argument
 		// It actually generates a relative time based on StartMeasurement(time) input argument
-		time_ns += uint64_t(1e9);
+		time_ns += (dataFrames[n].Timestamp - start_time) * 1e9;
 		writer->SaveSample(*cg, time_ns);
 		//std::this_thread::sleep_for(std::chrono::microseconds(10));
 	}
